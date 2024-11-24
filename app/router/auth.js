@@ -1,4 +1,4 @@
-
+import { sha256 } from 'js-sha256'
 
 async function digestMessage(message) {
     if (typeof crypto !== 'undefined' && crypto?.subtle?.digest) {
@@ -14,12 +14,13 @@ async function digestMessage(message) {
 export const generateSignature = async(timestamp, config) => {
     // const { t: timestamp} = payload
     const secretKey = config.auth.token
+    console.log('time: '+ timestamp)
     const signText = `${timestamp}:${secretKey}`
     // eslint-disable-next-line no-return-await
     return await digestMessage(signText)
 }
 
 export const verifySignature = async(req, config) => {
-    const payloadSign = await generateSignature(req.timestamp,config)
-    return payloadSign === req.sign
+    const payloadSign = await generateSignature(req.query.timestamp,config)
+    return payloadSign === req.query.sign
 }

@@ -1,6 +1,5 @@
 import {buildCollectionURL, isValidDatabaseName, toJsonString, validateCollectionName} from "./utils.js";
 import parser from 'mongodb-query-parser';
-import {ObjectId} from 'mongodb';
 
 export const toBSON = parser;
 

@@ -20,10 +20,11 @@ const router = async function(config) {
     });
 
     appRouter.all('*', async function (req, res, next) {
-        // if (!verifySignature(req, config)) {
-        //     console.error('verify sign error')
-        //     return
-        // }
+        if (!await verifySignature(req, config)) {
+            res.json({"verify": "error"})
+            return
+        }
+
         res.locals.baseHref = buildBaseHref(req.originalUrl, req.url)
         next()
     })

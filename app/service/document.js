@@ -4,6 +4,33 @@ import {ObjectId} from 'mongodb';
 
 export const toBSON = parser;
 
+const converters = {
+    // If type == J, convert value as json document
+    J(value) {
+        return JSON.parse(value);
+    },
+    // If type == N, convert value to number
+    // eslint-disable-next-line unicorn/prefer-native-coercion-functions
+    N(value) {
+        return Number(value);
+    },
+    // If type == O, convert value to ObjectId
+    O(value) {
+        return bson.parseObjectId(value);
+    },
+    // If type == R, convert to RegExp
+    R(value) {
+        return new RegExp(value, 'i');
+    },
+    U(value) {
+        return new Binary(Buffer.from(value.replaceAll('-', ''), 'hex'), Binary.SUBTYPE_UUID);
+    },
+    // if type == S, no conversion done
+    S(value) {
+        return value;
+    },
+};
+
 const routes = function (config) {
     const exp = {};
 
@@ -105,7 +132,9 @@ const routes = function (config) {
                 query: req.query.query
             }
 
-            res.render('collection', ctx)
+            console.log('collection data: ' + JSON.stringify(ctx))
+            res.json(docs)
+            // res.render('collection', ctx)
         }catch (error) {
             console.error(error)
         }
@@ -151,20 +180,11 @@ const routes = function (config) {
         return {};
     };
 
-    exp._getProjection = function (req) {
-        const { projection } = req.query;
-        if (projection) {
-            return bson.toSafeBSON(projection) ?? {};
-        }
-        return {};
-    };
-
     exp._getQueryOptions = function (req) {
         return {
             sort: exp._getSort(req),
-            limit: config.options.documentsPerPage,
+            // limit: 10,
             skip: Number.parseInt(req.query.skip, 10) || 0,
-            projection: exp._getProjection(req),
         };
     };
 
@@ -192,18 +212,18 @@ const routes = function (config) {
 
     exp._getItemsAndCount = async function (req, queryOptions) {
         let query = exp._getQuery(req);
-        if (req.query.runAggregate === 'on' && query.constructor.name === 'Array') {
-            if (query.length > 0) {
-                const queryAggregate = exp._getAggregatePipeline(query, queryOptions);
-                const [resultArray] = await req.collection.aggregate(queryAggregate, { allowDiskUse: config.mongodb.allowDiskUse }).toArray();
-                const { items, count } = resultArray;
-                return {
-                    items,
-                    count: count.at(0)?.count,
-                };
-            }
-            query = {};
-        }
+        // if (req.query.runAggregate === 'on' && query.constructor.name === 'Array') {
+        //     if (query.length > 0) {
+        //         const queryAggregate = exp._getAggregatePipeline(query, queryOptions);
+        //         const [resultArray] = await req.collection.aggregate(queryAggregate, { allowDiskUse: config.mongodb.allowDiskUse }).toArray();
+        //         const { items, count } = resultArray;
+        //         return {
+        //             items,
+        //             count: count.at(0)?.count,
+        //         };
+        //     }
+        //     query = {};
+        // }
         const [items, count] = await Promise.all([
             req.collection.find(query, { ...queryOptions, allowDiskUse: config.mongodb.allowDiskUse }).toArray(),
             req.collection.count(query),

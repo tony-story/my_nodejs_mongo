@@ -1,6 +1,8 @@
 import * as querystring from "querystring";
-import {BSON} from 'mongodb'
+import { BSON, ObjectId } from 'mongodb';
+import parser from 'mongodb-query-parser';
 
+export const toBSON = parser;
 export const buildDatabaseURL = function (base, dbName) {
     return base + 'db/' + encodeURIComponent(dbName)
 }
@@ -51,4 +53,13 @@ const { EJSON } = BSON;
 
 export const toJsonString = function (doc) {
     return EJSON.stringify(EJSON.serialize(doc));
+};
+
+
+
+export const parseObjectId = function (string) {
+    if (/^[\da-f]{24}$/i.test(string)) {
+        return new ObjectId(string);
+    }
+    return toBSON(string);
 };

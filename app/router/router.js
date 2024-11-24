@@ -118,7 +118,7 @@ const router = async function(config) {
     appRouter.post('/', mongoMiddleware, configuredRoutes.addDatabase)
     appRouter.post('/db/:database', mongoMiddleware, configuredRoutes.addCollection)
     appRouter.post('/db/:database/:collection', mongoMiddleware, configuredRoutes.addDocument)
-    appRouter.get('/db/:database/:collection/view', mongoMiddleware, configuredRoutes.viewCollection);
+    appRouter.get('/db/:database/:collection/view/', mongoMiddleware, configuredRoutes.viewCollection);
 
     return appRouter;
 }

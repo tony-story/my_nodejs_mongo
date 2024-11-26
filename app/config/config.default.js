@@ -18,6 +18,7 @@ export default {
         path: process.env.CONFIG_HEALTH_CHECK_PATH || '/status',
     },
     auth: {
-        token: process.env.CONFIG_AUTH_SECRET || 'admin'
+        token: process.env.CONFIG_AUTH_SECRET || 'admin',
+        open: process.env.CONFIG_SWITCH_OPEN || ''
     }
 }

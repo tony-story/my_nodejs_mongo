@@ -3,6 +3,7 @@ import db from "../db/db.js";
 import routes from '../service/index.js'
 import {buildDatabaseURL, buildCollectionURL} from "../service/utils.js";
 import {verifySignature} from "./auth.js";
+import {getPublicIP} from "../service/ip.js"
 
 
 const router = async function(config) {
@@ -10,6 +11,7 @@ const router = async function(config) {
     let mongo = null;
 
     try {
+        // 因为mongo连接等待时间较长  先放开mongo的连接ip限制
         mongo = await db(config)
     } catch (error) {
         console.debug(error);
@@ -19,8 +21,13 @@ const router = async function(config) {
         res.json({status: 'ok'})
     });
 
+    appRouter.get("/ip_search", async (req, res) => {
+        const _ip = await getPublicIP();
+        res.json({"ip": _ip})
+    });
+
     appRouter.all('*', async function (req, res, next) {
-        if (!await verifySignature(req, config)) {
+        if (config.auth.open && !await verifySignature(req, config)) {
             res.json({"verify": "error"})
             return
         }
@@ -31,6 +38,8 @@ const router = async function(config) {
 
     appRouter.param('database', function (req, res, next, id) {
         console.log('database id:'+ id)
+
+        console.log('database connection keys: ' + Object.keys(mongo.connections).join(','))
         if (!mongo.connections[id]) {
             console.error("connection not found")
             return res.redirect(res.locals.baseHref)

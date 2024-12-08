@@ -6,10 +6,12 @@ const connect = async function(config) {
         connections: {},
     }
 
-    const connections = Array.isArray(config.mongodb) ? config.mongodb : config.mongodb.split(',').map(x => x.trim()).filter(x => x !== '')
+    // console.log('mongodb log: '+ config.mongodb + 'type of: '+ (typeof config.mongodb))
+    // const connections = Array.isArray(config.mongodb) ? config.mongodb : config.mongodb.split(',').map(x => x.trim()).filter(x => x !== '')
+    const connections = config.mongodb.url.split(",").map(x => x.trim()).filter(x => x !== '')
     data.clients = await Promise.all(connections.map(async (info, index) => {
-        const {url,username, password} = info;
-        let connectionUrl = url
+        // const {url,username, password} = info;
+        let connectionUrl = info
         try {
             // const client = await mongoose.Mongoose.connect(connectionUrl);
             const client = await mongodb.MongoClient.connect(connectionUrl)
@@ -36,7 +38,7 @@ const connect = async function(config) {
         for (const collection of collections) {
             names.push(collection.name);
         }
-        data.collections[dbConnection.fullName] = names.sort();
+        data.collections[dbConnection.dbName] = names.sort();
         return collections;
     };
 
@@ -56,7 +58,8 @@ const connect = async function(config) {
                         fullName,
                         db,
                     };
-                    data.connections[fullName] = newConnection;
+                    // data.connections[fullName] = newConnection;
+                    data.connections[dbName] = newConnection;
                     return newConnection;
                 };
 
